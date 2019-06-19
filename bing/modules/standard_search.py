@@ -5,7 +5,7 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import range
 from builtins import object
-from .utils import _get_search_url, get_html
+from google.modules.utils import _get_search_url, get_html
 from bs4 import BeautifulSoup
 import urllib.parse
 from urllib.parse import unquote, parse_qs, urlparse
@@ -13,7 +13,7 @@ from unidecode import unidecode
 from re import match, findall
 
 
-class GoogleResult(object):
+class BingResult(object):
 
     """Represents a google search result."""
 
