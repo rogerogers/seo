@@ -5,7 +5,7 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import range
 from builtins import object
-from google.modules.utils import _get_search_url, get_html
+from .utils import _get_search_url, get_html
 from bs4 import BeautifulSoup
 import urllib.parse
 from urllib.parse import unquote, parse_qs, urlparse
@@ -32,7 +32,7 @@ class BingResult(object):
         name = self._limit_str_size(self.name, 55)
         description = self._limit_str_size(self.description, 49)
 
-        list_google = ["GoogleResult(",
+        list_google = ["BingResult(",
                        "name={}".format(name), "\n", " " * 13,
                        "description={}".format(description)]
 
@@ -71,16 +71,19 @@ def search(query, pages=1, lang='en', area='com', ncr=False, void=True, time_per
 
         if html:
             soup = BeautifulSoup(html, "html.parser")
-            divs = soup.findAll("div", attrs={"class": "g"})
 
-            recommand = soup.find('div', {'id': 'brs'}).find_all('p', {'class': 'nVcaUb'})
+            result = soup.find("ol", attrs={"id": "b_results"})
 
-            results_div = soup.find("div", attrs={"id": "resultStats"})
+            divs = result.find_all('li', attrs={"class":"b_algo"})
+
+            recommand = result.find_all('li', {'class': 'b_ans'})
+
+            results_div = soup.find("div", attrs={"id": "b_tween"}).find_all('span', {'class':'sb_count'})
             number_of_results = _get_number_of_results(results_div)
 
             j = 0
             for li in divs:
-                res = GoogleResult()
+                res = BingResult()
 
                 res.page = i
                 res.index = j
@@ -189,9 +192,9 @@ def _get_description(li):
 
     TODO: There are some text encoding problems to resolve."""
 
-    sdiv = li.find("div", attrs={"class": "s"})
+    sdiv = li.find("div", attrs={"class": "b_caption"})
     if sdiv:
-        stspan = sdiv.find("span", attrs={"class": "st"})
+        stspan = sdiv.find("p")
         if stspan is not None:
             # return stspan.text.encode("utf-8").strip()
             return stspan.text.strip()
