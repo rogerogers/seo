@@ -8,7 +8,7 @@ from builtins import object
 from .utils import _get_search_url, get_html
 from bs4 import BeautifulSoup
 import urllib.parse
-from urllib.parse import unquote, parse_qs, urlparse
+from urllib.parse import unquote, parse_qs, urlparse, urljoin
 from unidecode import unidecode
 from re import match, findall
 
@@ -66,14 +66,23 @@ def search(query, pages=1, lang='en', area='com', ncr=False, void=True, time_per
 
     results = []
     for i in range(first_page, first_page + pages):
-        url = _get_search_url(query, i, lang=lang, area=area, ncr=ncr, time_period=time_period, sort_by_date=sort_by_date)
+
+        if i == 0:
+            url = _get_search_url(query, i+1, lang=lang, area=area, ncr=ncr, time_period=time_period, sort_by_date=sort_by_date)
+
+        with open('/home/rogers/laji'+str(i)+'.html', 'a') as laji:
+            laji.write(url)
+
         html = get_html(url)
-        print(query)
 
         if html:
             soup = BeautifulSoup(html, "html.parser")
 
+            with open('/home/rogers/laji'+str(i)+'.html', 'a') as laji:
+                laji.write(soup.prettify())
+
             result = soup.find("ol", attrs={"id": "b_results"})
+
             print(result)
 
             divs = result.find_all('li', attrs={"class":"b_algo"})
@@ -81,7 +90,12 @@ def search(query, pages=1, lang='en', area='com', ncr=False, void=True, time_per
             recommand = _get_recommand(result.find('li', {'class': 'b_ans'}))
 
             results_div = soup.find("div", attrs={"id": "b_tween"}).find_all('span', {'class':'sb_count'})
+
             number_of_results = _get_number_of_results(results_div)
+
+            attrs = result.find('li', attrs={"class": "b_pag"}).find_all('a')[i+2].attrs
+
+            url = urljoin('https://cn.bing.com',attrs['href'])
 
             j = 0
             for li in divs:

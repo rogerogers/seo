@@ -16,6 +16,7 @@ from functools import wraps
 from urllib.parse import urlencode
 from fake_useragent import UserAgent
 import sys
+import requests
 
 class AreaError(KeyError):
     pass
@@ -40,19 +41,21 @@ def normalize_query(query):
     return query.strip().replace(":", "%3A").replace("+", "%2B").replace("&", "%26").replace(" ", "+")
 
 
-def _get_search_url(query, page=0, per_page=14, lang='en', area='com', ncr=False, time_period=False, sort_by_date=False):
+def _get_search_url(query, page=1, per_page=14, lang='en', area='com', ncr=False, time_period=False, sort_by_date=False):
     # note: num per page might not be supported by google anymore (because of
     # google instant)
     if page == 1:
         first = 1
+    elif page == 0:
+        first =1
     else:
-        first = (page-1)*10 + 9
+        first = (page-1)*10 - 1
 
     params = {
-        'nl': lang,
+    #    'nl': lang,
         'q': query.replace(' ', '+').encode('utf8'),
         'first': first,
-        'num': per_page
+    #    'num': per_page
     }
 
     time_mapping = {
@@ -79,7 +82,7 @@ def _get_search_url(query, page=0, per_page=14, lang='en', area='com', ncr=False
         params['gws_rd'] = 'cr' # Google Web Server ReDirect: CountRy.
 
     params['PC'] = 'U316'
-    params['FROM'] = 'CHROMN'
+    params['FROM'] = 'PERE' + str(page - 2 if (page - 2) > 0 else '')
 
     params = urlencode(params)
 
@@ -99,7 +102,6 @@ def _get_search_url(query, page=0, per_page=14, lang='en', area='com', ncr=False
 
     # return u"http://www.google.com/search?hl=%s&q=%s&start=%i&num=%i" %
     # (lang, normalize_query(query), page * per_page, per_page)
-    url += params
     return url
 
 
@@ -108,19 +110,17 @@ def get_html(url):
     header = ua.random
 
     try:
-        request = urllib.request.Request(url)
-        request.add_header("User-Agent", header)
-        html = urllib.request.urlopen(request).read()
-        return html
-    except urllib.error.HTTPError as e:
-        print("Error accessing:", url)
+        headers = {
+                "User-Agent": header,
+                "cache-control": 'max-age=0',
+                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
+#                "accept-encoding": 'gzip, deflate, br'
+                }
+        print(headers, url)
+        html = requests.get(url, headers=headers)
+        return html.text
+    except requests.exceptions.RequestException as e:
         print(e)
-        if e.code == 503 and 'CaptchaRedirect' in e.read():
-            print("Google is requiring a Captcha. "
-                  "For more information check: 'https://support.google.com/websearch/answer/86640'")
-        if e.code == 503:
-            sys.exit("503 Error: service is currently unavailable. Program will exit.")
-        return None
     except Exception as e:
         print("Error accessing:", url)
         print(e)
