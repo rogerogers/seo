@@ -68,15 +68,17 @@ def search(query, pages=1, lang='en', area='com', ncr=False, void=True, time_per
     for i in range(first_page, first_page + pages):
         url = _get_search_url(query, i, lang=lang, area=area, ncr=ncr, time_period=time_period, sort_by_date=sort_by_date)
         html = get_html(url)
+        print(query)
 
         if html:
             soup = BeautifulSoup(html, "html.parser")
 
             result = soup.find("ol", attrs={"id": "b_results"})
+            print(result)
 
             divs = result.find_all('li', attrs={"class":"b_algo"})
 
-            recommand = result.find_all('li', {'class': 'b_ans'})
+            recommand = _get_recommand(result.find('li', {'class': 'b_ans'}))
 
             results_div = soup.find("div", attrs={"id": "b_tween"}).find_all('span', {'class':'sb_count'})
             number_of_results = _get_number_of_results(results_div)
@@ -103,6 +105,21 @@ def search(query, pages=1, lang='en', area='com', ncr=False, void=True, time_per
                 results.append(res)
                 j += 1
     return results
+
+
+def _get_recommand(recommand_div):
+    if recommand_div == None:
+        return None
+    lis = recommand_div.find_all('a')
+    print(lis)
+    a_list = []
+    for a in lis:
+        if a is not None:
+            a_list.append(a.text.strip())
+    if len(a_list) == 0:
+        return None
+    return a_list
+
 
 
 # PRIVATE

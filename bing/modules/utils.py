@@ -40,14 +40,18 @@ def normalize_query(query):
     return query.strip().replace(":", "%3A").replace("+", "%2B").replace("&", "%26").replace(" ", "+")
 
 
-def _get_search_url(query, page=0, per_page=10, lang='en', area='com', ncr=False, time_period=False, sort_by_date=False):
+def _get_search_url(query, page=0, per_page=14, lang='en', area='com', ncr=False, time_period=False, sort_by_date=False):
     # note: num per page might not be supported by google anymore (because of
     # google instant)
+    if page == 1:
+        first = 1
+    else:
+        first = (page-1)*10 + 9
 
     params = {
         'nl': lang,
-        'q': query.encode('utf8'),
-        'start': page * per_page,
+        'q': query.replace(' ', '+').encode('utf8'),
+        'first': first,
         'num': per_page
     }
 
