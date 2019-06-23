@@ -8,6 +8,7 @@ from builtins import range
 from past.utils import old_div
 import time
 from selenium import webdriver
+from selenium.webdriver import ChromeOptions
 import urllib.request
 import urllib.error
 import urllib.parse
@@ -428,7 +429,38 @@ def _get_search_url(query, page=0, per_page=10, lang='en', area='com', ncr=False
     return url
 
 
-def get_html(url):
+def get_html(word, num):
+    url = 'https://www.google.com.sa'
+
+    option = ChromeOptions()
+    option.add_argument('headless')
+
+    browser = webdriver.Chrome(chrome_options=option)
+
+    browser.get(url)
+
+    lang = browser.find_element_by_id('SIvCob').find_element_by_css_selector('a:first-child')
+
+    lang.click()
+
+    form_input = browser.find_element_by_css_selector('input.gLFyf.gsfi')
+    form_input.send_keys(word)
+    form_input.submit()
+
+    html = [browser.page_source]
+
+    for i in range(num-1):
+
+        try:
+            browser.find_element_by_css_selector('div#navcnt tr td:nth-child(' + str(i + 3) + ') a').click()
+        except Exception as e:
+            continue
+
+        html.append(browser.page_source)
+
+    return html
+
+def get_html_bak(url):
     ua = UserAgent()
     header = ua.random
 

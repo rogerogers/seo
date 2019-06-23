@@ -17,6 +17,8 @@ from urllib.parse import urlencode
 from fake_useragent import UserAgent
 import sys
 import requests
+from selenium import webdriver
+from selenium.webdriver import ChromeOptions
 
 class AreaError(KeyError):
     pass
@@ -105,26 +107,32 @@ def _get_search_url(query, page=1, per_page=14, lang='en', area='com', ncr=False
     return url
 
 
-def get_html(url):
-    ua = UserAgent()
-    header = ua.random
+def get_html(word, num):
+    url = 'https://www.bing.com/?setmkt=ar-sa&setlang=ar-sa'
 
-    try:
-        headers = {
-                "User-Agent": header,
-                "cache-control": 'max-age=0',
-                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
-#                "accept-encoding": 'gzip, deflate, br'
-                }
-        print(headers, url)
-        html = requests.get(url, headers=headers)
-        return html.text
-    except requests.exceptions.RequestException as e:
-        print(e)
-    except Exception as e:
-        print("Error accessing:", url)
-        print(e)
-        return None
+    option = ChromeOptions()
+    option.add_argument('headless')
+
+    browser = webdriver.Chrome(chrome_options=option)
+
+    browser.get(url)
+
+    form_input = browser.find_element_by_id('sb_form_q')
+    form_input.send_keys(word)
+    form_input.submit()
+
+    html = [browser.page_source]
+
+    for i in range(num-1):
+
+        try:
+            browser.find_element_by_css_selector('li.b_pag ul li:nth-child(' + str(i + 3) + ') a').click()
+        except Exception as e:
+            continue
+
+        html.append(browser.page_source)
+
+    return html
 
 
 def write_html_to_file(html, filename):

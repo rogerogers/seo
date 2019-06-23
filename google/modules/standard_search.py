@@ -51,7 +51,7 @@ class GoogleResult(object):
 
 
 # PUBLIC
-def search(query, pages=1, lang='en', area='com', ncr=False, void=True, time_period=False, sort_by_date=False, first_page=0):
+def search(word, num=1, lang='en', area='com', ncr=False, void=True, time_period=False, sort_by_date=False, first_page=0):
     """Returns a list of GoogleResult.
 
     Args:
@@ -65,15 +65,20 @@ def search(query, pages=1, lang='en', area='com', ncr=False, void=True, time_per
         A GoogleResult object."""
 
     results = []
-    for i in range(first_page, first_page + pages):
-        url = _get_search_url(query, i, lang=lang, area=area, ncr=ncr, time_period=time_period, sort_by_date=sort_by_date)
-        html = get_html(url)
 
-        if html:
-            soup = BeautifulSoup(html, "html.parser")
+    html = get_html(word, num)
+
+    if len(html) > 0:
+        i = 0
+        for page in html:
+
+            soup = BeautifulSoup(page, "html.parser")
             divs = soup.findAll("div", attrs={"class": "g"})
 
-            recommand = soup.find('div', {'id': 'brs'}).find_all('p', {'class': 'nVcaUb'})
+            if not divs:
+                continue
+
+            recommand = _get_recommands(soup.find('div', {'id': 'brs'}))
 
             results_div = soup.find("div", attrs={"id": "resultStats"})
             number_of_results = _get_number_of_results(results_div)
@@ -87,6 +92,7 @@ def search(query, pages=1, lang='en', area='com', ncr=False, void=True, time_per
 
                 res.name = _get_name(li)
                 res.link = _get_link(li)
+                print('get link', res.link)
                 res.google_link = _get_google_link(li)
                 res.description = _get_description(li)
                 res.thumb = _get_thumb()
@@ -94,12 +100,29 @@ def search(query, pages=1, lang='en', area='com', ncr=False, void=True, time_per
                 res.number_of_results = number_of_results
                 res.recommand = recommand
 
-                if void is True:
-                    if res.description is None:
-                        continue
                 results.append(res)
                 j += 1
+            i += 1
     return results
+
+
+def _get_recommands(recommand_div):
+    if not recommand_div:
+        return None
+    else:
+        list = []
+        words = recommand_div.find_all('a')
+        for word in words:
+            if not word:
+                continue
+            else:
+                list.append(word.text.strip())
+        if len(list) > 0:
+            return list
+        else:
+            return None
+
+
 
 
 # PRIVATE

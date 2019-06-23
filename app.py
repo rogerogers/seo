@@ -1,6 +1,10 @@
+import pandas as pd
 from bing import bing
 from google import google
-import pandas as pd
+from urllib.parse import urlparse
+
+def get_netloc(url):
+    return urlparse(url).netloc
 
 if __name__=='__main__':
 
@@ -11,15 +15,19 @@ if __name__=='__main__':
         try:
 
             bing_res = bing.search(word)
-            google_res = google.search(word)
+            google_res = google.search(word, 3)
+            google_recommands = google_res[0].recommand
             bing_recommands = bing_res[0].recommand
             if bing_recommands:
-                print(bing_recommands)
                 for recommand in bing_recommands:
-                    bing_res = bing_res.extend(bing.search(recommand))
+                    bing_res.extend(bing.search(recommand))
 
-            df = pd.DataFrame([{'name': i.name, 'link': i.link} for i in bing_res])
-            print(df)
+            if google_recommands:
+                for recommand in google_recommands:
+                    google_res.extend(google.search(recommand, 3))
+            google_res.extend(bing_res)
+
+            df = pd.DataFrame([{'name': i.name, 'link': get_netloc(i.link)} for i in google_res]).groupby('link').first()
             df.to_excel('/home/sense/' + word + '.xls')
 
 

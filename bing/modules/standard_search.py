@@ -51,7 +51,7 @@ class BingResult(object):
 
 
 # PUBLIC
-def search(query, pages=1, lang='en', area='com', ncr=False, void=True, time_period=False, sort_by_date=False, first_page=0):
+def search(word, num=3):
     """Returns a list of GoogleResult.
 
     Args:
@@ -65,27 +65,24 @@ def search(query, pages=1, lang='en', area='com', ncr=False, void=True, time_per
         A GoogleResult object."""
 
     results = []
-    for i in range(first_page, first_page + pages):
 
-        if i == 0:
-            url = _get_search_url(query, i+1, lang=lang, area=area, ncr=ncr, time_period=time_period, sort_by_date=sort_by_date)
+    html = get_html(word, num)
 
-        with open('/home/rogers/laji'+str(i)+'.html', 'a') as laji:
-            laji.write(url)
+    if len(html) > 0:
+        i = 1
+        for page in html:
 
-        html = get_html(url)
-
-        if html:
-            soup = BeautifulSoup(html, "html.parser")
-
-            with open('/home/rogers/laji'+str(i)+'.html', 'a') as laji:
-                laji.write(soup.prettify())
+            soup = BeautifulSoup(page, "html.parser")
 
             result = soup.find("ol", attrs={"id": "b_results"})
 
-            print(result)
+            if not result:
+                continue
 
             divs = result.find_all('li', attrs={"class":"b_algo"})
+
+            if not result:
+                continue
 
             recommand = _get_recommand(result.find('li', {'class': 'b_ans'}))
 
@@ -94,8 +91,6 @@ def search(query, pages=1, lang='en', area='com', ncr=False, void=True, time_per
             number_of_results = _get_number_of_results(results_div)
 
             attrs = result.find('li', attrs={"class": "b_pag"}).find_all('a')[i+2].attrs
-
-            url = urljoin('https://cn.bing.com',attrs['href'])
 
             j = 0
             for li in divs:
@@ -106,6 +101,7 @@ def search(query, pages=1, lang='en', area='com', ncr=False, void=True, time_per
 
                 res.name = _get_name(li)
                 res.link = _get_link(li)
+                print('get link', res.link)
                 res.google_link = _get_google_link(li)
                 res.description = _get_description(li)
                 res.thumb = _get_thumb()
@@ -113,11 +109,9 @@ def search(query, pages=1, lang='en', area='com', ncr=False, void=True, time_per
                 res.number_of_results = number_of_results
                 res.recommand = recommand
 
-                if void is True:
-                    if res.description is None:
-                        continue
                 results.append(res)
                 j += 1
+            i += 1
     return results
 
 
@@ -125,7 +119,6 @@ def _get_recommand(recommand_div):
     if recommand_div == None:
         return None
     lis = recommand_div.find_all('a')
-    print(lis)
     a_list = []
     for a in lis:
         if a is not None:
