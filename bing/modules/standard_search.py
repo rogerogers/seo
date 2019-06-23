@@ -51,7 +51,7 @@ class BingResult(object):
 
 
 # PUBLIC
-def search(word, num=3):
+def search(word, num=4):
     """Returns a list of GoogleResult.
 
     Args:
@@ -149,41 +149,13 @@ def _filter_link(link):
         o = urlparse(link, 'http')
         # link type-1
         # >>> "https://www.gitbook.com/book/ljalphabeta/python-"
-        if o.netloc and 'google' not in o.netloc:
+        if o.netloc:
             return link
-        # link type-2
-        # >>> "http://www.google.com/url?url=http://python.jobbole.com/84108/&rct=j&frm=1&q=&esrc=s&sa=U&ved=0ahUKEwj3quDH-Y7UAhWG6oMKHdQ-BQMQFggUMAA&usg=AFQjCNHPws5Buru5Z71wooRLHT6mpvnZlA"
-        if o.netloc and o.path.startswith('/url'):
-            try:
-                link = parse_qs(o.query)['url'][0]
-                o = urlparse(link, 'http')
-                if o.netloc and 'google' not in o.netloc:
-                    return link
-            except KeyError:
-                pass
-        # Decode hidden URLs.
-        if link.startswith('/url?'):
-            try:
-                # link type-3
-                # >>> "/url?q=http://python.jobbole.com/84108/&sa=U&ved=0ahUKEwjFw6Txg4_UAhVI5IMKHfqVAykQFggUMAA&usg=AFQjCNFOTLpmpfqctpIn0sAfaj5U5gAU9A"
-                link = parse_qs(o.query)['q'][0]
-                # Valid results are absolute URLs not pointing to a Google domain
-                # like images.google.com or googleusercontent.com
-                o = urlparse(link, 'http')
-                if o.netloc and 'google' not in o.netloc:
-                    return link
-            except KeyError:
-                # link type-4
-                # >>> "/url?url=https://machine-learning-python.kspax.io/&rct=j&frm=1&q=&esrc=s&sa=U&ved=0ahUKEwj3quDH-Y7UAhWG6oMKHdQ-BQMQFggfMAI&usg=AFQjCNEfkUI0RP_RlwD3eI22rSfqbYM_nA"
-                link = parse_qs(o.query)['url'][0]
-                o = urlparse(link, 'http')
-                if o.netloc and 'google' not in o.netloc:
-                    return link
 
     # Otherwise, or on error, return None.
     except Exception:
         pass
-    return None
+    return ''
 
 
 def _get_link(li):

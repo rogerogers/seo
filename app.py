@@ -1,11 +1,39 @@
-import pandas as pd
+import xlwt
 from bing import bing
 from google import google
 from urllib.parse import urlparse
 from time import sleep
+from os import path
 
 def get_netloc(url):
     return urlparse(url).netloc
+
+
+def data_unique(data):
+    new_data = []
+    unique_list = []
+    for item in data:
+        if item not in unique_list:
+            unique_list.append(item['link'])
+            new_data.append([item['name'], item['link']])
+    return new_data
+
+
+def write(data, path):
+    wb = xlwt.Workbook()
+    ws = wb.add_sheet('sheet')
+
+    col_index = 0
+    for col in data:
+        row_index = 0
+        for row in col:
+            print(type(row), row)
+            ws.write(col_index, row_index, row)
+            row_index += 1
+        col_index += 1
+
+    wb.save(path)
+
 
 if __name__=='__main__':
 
@@ -28,10 +56,11 @@ if __name__=='__main__':
                 for recommand in google_recommands:
                     google_res.extend(google.search(recommand, 3))
                     sleep(3)
+            google_res = []
             google_res.extend(bing_res)
+            data = data_unique([{'name': i.name, 'link': get_netloc(i.link)} for i in google_res])
+            write(data, '/home/rogers/' + word + '.xls')
 
-            df = pd.DataFrame([{'name': i.name, 'link': get_netloc(i.link)} for i in google_res]).groupby('link').first()
-            df.to_excel('/home/sense/' + word + '.xls')
 
 
         except Exception as e:

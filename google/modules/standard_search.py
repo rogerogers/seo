@@ -145,7 +145,7 @@ def _filter_link(link):
         o = urlparse(link, 'http')
         # link type-1
         # >>> "https://www.gitbook.com/book/ljalphabeta/python-"
-        if o.netloc and 'google' not in o.netloc:
+        if o.netloc:
             return link
         # link type-2
         # >>> "http://www.google.com/url?url=http://python.jobbole.com/84108/&rct=j&frm=1&q=&esrc=s&sa=U&ved=0ahUKEwj3quDH-Y7UAhWG6oMKHdQ-BQMQFggUMAA&usg=AFQjCNHPws5Buru5Z71wooRLHT6mpvnZlA"

@@ -13,8 +13,4 @@ vcrpy = "*"
 future = "*"
 fake-useragent = "*"
 Unidecode = "*"
-pandas = "*"
-ipython = "*"
 xlwt = "*"
-xlrd = "*"
-
