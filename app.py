@@ -2,6 +2,7 @@ import pandas as pd
 from bing import bing
 from google import google
 from urllib.parse import urlparse
+from time import sleep
 
 def get_netloc(url):
     return urlparse(url).netloc
@@ -21,10 +22,12 @@ if __name__=='__main__':
             if bing_recommands:
                 for recommand in bing_recommands:
                     bing_res.extend(bing.search(recommand))
+                    sleep(3)
 
             if google_recommands:
                 for recommand in google_recommands:
                     google_res.extend(google.search(recommand, 3))
+                    sleep(3)
             google_res.extend(bing_res)
 
             df = pd.DataFrame([{'name': i.name, 'link': get_netloc(i.link)} for i in google_res]).groupby('link').first()
