@@ -23,7 +23,10 @@ class ShoppingResult(object):
         self.description = None
         self.compare_url = None
         self.store_count = None
-        self.price = None
+        self.min_price = None
+
+    def __repr__(self):
+        return unidecode(self.name)
 
 
 def shopping(query, pages=1):
@@ -35,18 +38,27 @@ def shopping(query, pages=1):
             j = 0
             soup = BeautifulSoup(html)
 
-            products = soup.findAll("div", "sh-dlr__list-result")
+            products = soup.findAll("div", "g")
+            print("yoooo", products)
             for prod in products:
                 res = ShoppingResult()
 
-                h3 = prod.find("h3")
+                divs = prod.findAll("div")
+                for div in divs:
+                    match = re.search(
+                        "from (?P<count>[0-9]+) stores", div.text.strip())
+                    if match:
+                        res.store_count = match.group("count")
+                        break
+
+                h3 = prod.find("h3", "r")
                 if h3:
                     a = h3.find("a")
                     if a:
                         res.compare_url = a["href"]
                     res.name = h3.text.strip()
 
-                psliimg = prod.find("div", "sh-dlr__thumbnail")
+                psliimg = prod.find("div", "psliimg")
                 if psliimg:
                     img = psliimg.find("img")
                     if img:
@@ -56,16 +68,14 @@ def shopping(query, pages=1):
                 if f:
                     res.subtext = f.text.strip()
 
-                price = prod.find("span", "Nr22bf")
+                price = prod.find("div", "psliprice")
                 if price:
-                    res.price = price.text.strip()
+                    res.min_price = price.text.strip()
 
                 results.append(res)
                 j = j + 1
     return results
 
 
-def _get_shopping_url(query, page=0, per_page=20):
-    return "http://www.google.com/search?hl=en&q={0}&tbm=shop&start={1}&num={2}".format(
-        normalize_query(query), page * per_page, per_page
-    )
+def _get_shopping_url(query, page=0, per_page=10):
+    return "http://www.google.com/search?hl=en&q={0}&tbm=shop&start={1}&num={2}".format(normalize_query(query), page * per_page, per_page)

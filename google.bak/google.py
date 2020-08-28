@@ -7,8 +7,10 @@ from .modules import calculator
 from .modules import standard_search
 from .modules import shopping_search
 
-__author__ = "Anthony Casagrande <birdapi@gmail.com>, " + \
-    "Agustin Benassi <agusbenassi@gmail.com>"
+__author__ = (
+    "Anthony Casagrande <birdapi@gmail.com>, "
+    + "Agustin Benassi <agusbenassi@gmail.com>"
+)
 __version__ = "1.1.0"
 
 
@@ -19,11 +21,13 @@ search_images = images.search
 convert_currency = currency.convert
 exchange_rate = currency.exchange_rate
 calculate = calculator.calculate
+shopping_search = shopping_search.shopping
 
 # TODO: This method is not working anymore! There is a new GET
 # link for this kind of search
-shopping = shopping_search.shopping
+# shopping = shopping_search.shopping
 
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()
